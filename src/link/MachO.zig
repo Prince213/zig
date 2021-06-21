@@ -1819,7 +1819,7 @@ pub fn populateMissingMetadata(self: *MachO) !void {
 
         log.debug("found __text section free space 0x{x} to 0x{x}", .{ off, off + needed_size });
 
-        try text_segment.addSection(self.base.allocator, "__text", "__TEXT", .{
+        try text_segment.addSection(self.base.allocator, "__text", .{
             .addr = text_segment.inner.vmaddr + off,
             .size = @intCast(u32, needed_size),
             .offset = @intCast(u32, off),
@@ -1850,7 +1850,7 @@ pub fn populateMissingMetadata(self: *MachO) !void {
 
         log.debug("found __stubs section free space 0x{x} to 0x{x}", .{ off, off + needed_size });
 
-        try text_segment.addSection(self.base.allocator, "__stubs", "__TEXT", .{
+        try text_segment.addSection(self.base.allocator, "__stubs", .{
             .addr = text_segment.inner.vmaddr + off,
             .size = needed_size,
             .offset = @intCast(u32, off),
@@ -1877,7 +1877,7 @@ pub fn populateMissingMetadata(self: *MachO) !void {
 
         log.debug("found __stub_helper section free space 0x{x} to 0x{x}", .{ off, off + needed_size });
 
-        try text_segment.addSection(self.base.allocator, "__stub_helper", "__TEXT", .{
+        try text_segment.addSection(self.base.allocator, "__stub_helper", .{
             .addr = text_segment.inner.vmaddr + off,
             .size = needed_size,
             .offset = @intCast(u32, off),
@@ -1922,7 +1922,7 @@ pub fn populateMissingMetadata(self: *MachO) !void {
 
         log.debug("found __got section free space 0x{x} to 0x{x}", .{ off, off + needed_size });
 
-        try dc_segment.addSection(self.base.allocator, "__got", "__DATA_CONST", .{
+        try dc_segment.addSection(self.base.allocator, "__got", .{
             .addr = dc_segment.inner.vmaddr + off - dc_segment.inner.fileoff,
             .size = needed_size,
             .offset = @intCast(u32, off),
@@ -1967,7 +1967,7 @@ pub fn populateMissingMetadata(self: *MachO) !void {
 
         log.debug("found __la_symbol_ptr section free space 0x{x} to 0x{x}", .{ off, off + needed_size });
 
-        try data_segment.addSection(self.base.allocator, "__la_symbol_ptr", "__DATA", .{
+        try data_segment.addSection(self.base.allocator, "__la_symbol_ptr", .{
             .addr = data_segment.inner.vmaddr + off - data_segment.inner.fileoff,
             .size = needed_size,
             .offset = @intCast(u32, off),
@@ -1987,7 +1987,7 @@ pub fn populateMissingMetadata(self: *MachO) !void {
 
         log.debug("found __data section free space 0x{x} to 0x{x}", .{ off, off + needed_size });
 
-        try data_segment.addSection(self.base.allocator, "__data", "__DATA", .{
+        try data_segment.addSection(self.base.allocator, "__data", .{
             .addr = data_segment.inner.vmaddr + off - data_segment.inner.fileoff,
             .size = needed_size,
             .offset = @intCast(u32, off),
