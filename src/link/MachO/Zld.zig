@@ -279,8 +279,9 @@ fn parseInputFiles(self: *Zld, files: []const []const u8) !void {
             full_path,
             self.syslibroot,
             true,
-        )) |dylib| {
-            try self.dylibs.append(self.allocator, dylib);
+        )) |dylibs| {
+            defer self.allocator.free(dylibs);
+            try self.dylibs.appendSlice(self.allocator, dylibs);
             continue;
         }
 
@@ -289,18 +290,6 @@ fn parseInputFiles(self: *Zld, files: []const []const u8) !void {
 }
 
 fn parseLibs(self: *Zld, libs: []const []const u8) !void {
-    const DylibDeps = struct {
-        fn bubbleUp(out: *std.ArrayList(*Dylib), next: *Dylib) error{OutOfMemory}!void {
-            try out.ensureUnusedCapacity(next.dylibs.items.len);
-            for (next.dylibs.items) |dylib| {
-                out.appendAssumeCapacity(dylib);
-            }
-            for (next.dylibs.items) |dylib| {
-                try bubbleUp(out, dylib);
-            }
-        }
-    };
-
     for (libs) |lib| {
         if (try Dylib.createAndParseFromPath(
             self.allocator,
@@ -308,8 +297,9 @@ fn parseLibs(self: *Zld, libs: []const []const u8) !void {
             lib,
             self.syslibroot,
             true,
-        )) |dylib| {
-            try self.dylibs.append(self.allocator, dylib);
+        )) |dylibs| {
+            defer self.allocator.free(dylibs);
+            try self.dylibs.appendSlice(self.allocator, dylibs);
             continue;
         }
 
@@ -320,26 +310,21 @@ fn parseLibs(self: *Zld, libs: []const []const u8) !void {
 
         log.warn("unknown filetype for a library: '{s}'", .{lib});
     }
-
-    // Flatten out any parsed dependencies.
-    var deps = std.ArrayList(*Dylib).init(self.allocator);
-    defer deps.deinit();
-
-    for (self.dylibs.items) |dylib| {
-        try DylibDeps.bubbleUp(&deps, dylib);
-    }
-
-    try self.dylibs.appendSlice(self.allocator, deps.toOwnedSlice());
 }
 
 fn parseLibSystem(self: *Zld, libc_stub_path: []const u8) !void {
-    const dylib = (try Dylib.createAndParseFromPath(
+    const dylibs = (try Dylib.createAndParseFromPath(
         self.allocator,
         self.arch.?,
         libc_stub_path,
         self.syslibroot,
         false,
     )) orelse return error.FailedToParseLibSystem;
+    defer self.allocator.free(dylibs);
+
+    assert(dylibs.len == 1); // More than one dylib output from parsing libSystem!
+    const dylib = dylibs[0];
+
     self.libsystem_dylib_index = @intCast(u16, self.dylibs.items.len);
     try self.dylibs.append(self.allocator, dylib);
 
